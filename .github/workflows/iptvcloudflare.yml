@@ -1,4 +1,4 @@
-name: Daily M3U Crawler
+name: iptvcloudflare
 
 on:
   schedule:
