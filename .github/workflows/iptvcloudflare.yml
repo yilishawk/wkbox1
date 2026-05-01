@@ -1,0 +1,46 @@
+name: Daily M3U Crawler
+
+on:
+  schedule:
+    # 北京时间 8:00  → UTC 0:00
+    - cron: '0 0 * * *'
+    # 北京时间 12:00 → UTC 4:00
+    - cron: '0 4 * * *'
+    # 北京时间 18:00 → UTC 10:00
+    - cron: '0 10 * * *'
+  workflow_dispatch:        # 允许手动触发
+
+permissions:
+  contents: write           # 允许推送文件
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run crawler
+        run: python iptvcloudflare.py
+
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add hotel_tvn.m3u youhun.m3u
+          if git diff --staged --quiet; then
+            echo "文件无变化，跳过提交。"
+          else
+            git commit -m "Update M3U playlists [skip ci]"
+            git push
+          fi
